@@ -59,6 +59,15 @@ tr.sel td{background:var(--panel);font-weight:bold}
 .daterow{display:flex;gap:8px;position:relative}.daterow #dt{flex:1}.cal{width:48px;min-height:48px;display:grid;place-items:center;border:1px solid var(--line);border-radius:4px;background:var(--field);color:var(--ink);cursor:pointer;padding:0}.cal svg{width:20px;height:20px}#dtPick{position:absolute;left:0;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none;border:0;padding:0;min-height:0}.hint{font-size:13px;color:var(--muted);margin-top:4px}.hint.bad{color:var(--warn);font-weight:600}.ghost{min-height:48px;padding:0 14px;border:1px solid var(--line);border-radius:4px;background:var(--field);color:var(--ink);font:inherit;font-size:15px;cursor:pointer;white-space:nowrap}
 .note{font-size:14px;padding:10px 12px;border-left:4px solid var(--warn);background:var(--bg)}.note:empty{display:none}
 td.flag{color:var(--warn)}
+.bulk{background:var(--panel);border-radius:6px;padding:clamp(18px,3vw,32px);display:grid;gap:16px}
+.drop{border:2px dashed var(--line);border-radius:6px;padding:22px;text-align:center;background:var(--field);cursor:pointer}
+.drop.over{border-color:var(--red)}.drop strong{display:block;font-size:17px;margin-bottom:4px}
+.maprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px}
+.summary{font-size:15px}.summary b{color:var(--burg)}
+.prev{overflow-x:auto}.prev table{font-size:14px;min-width:640px}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.ghost2{min-height:44px;padding:0 16px;border:1px solid var(--line);border-radius:4px;background:var(--field);color:var(--ink);font:inherit;font-size:15px;cursor:pointer}
+.err2{color:var(--warn);font-weight:600}
 .err{padding:20px;border-left:4px solid var(--red);background:var(--panel)}
 @media(max-width:760px){.conv{grid-template-columns:minmax(0,1fr)}.result{margin:0 10px 10px}}
 @media(max-width:600px){table{font-size:13px}.hide-s{display:none}}
@@ -68,7 +77,7 @@ td.flag{color:var(--warn)}
 <body>
 <section class="band"><div class="wrap">
 <h1>Currency to AED at CBUAE rates</h1>
-<p class="sub">Converts any currency published by the Central Bank of the UAE into UAE Dirham, and back, at the CBUAE rate for any business day since 1 January 2020. New rates are added every evening after CBUAE publishes.</p>
+<p class="sub">Converts any currency published by the Central Bank of the UAE into UAE Dirham, and back, at the CBUAE rate for any business day since 1 January 2018. New rates are added every evening after CBUAE publishes.</p>
 <div id="app"><div class="err" id="loading">Loading CBUAE rates…</div></div>
 </div></section>
 
@@ -78,6 +87,26 @@ td.flag{color:var(--warn)}
 <table><thead><tr><th>Code</th><th>Currency</th><th class="n">1 unit = AED</th><th class="n hide-s">1 AED = unit</th></tr></thead><tbody id="rows"></tbody></table>
 </div></section>
 
+<section class="band" id="bulkBand" hidden><div class="wrap">
+<h2>Convert an Excel file</h2>
+<p class="sub" style="margin-bottom:16px">Upload a sheet with a date, an amount and a currency on each row. You get the same workbook back with the CBUAE rate, the rate date used and the amount in AED added to every row. The file is read in your browser and is not uploaded anywhere.</p>
+<div class="bulk">
+  <label class="drop" id="drop" for="file"><strong>Choose an Excel or CSV file</strong><span class="stamp">or drop it here (.xlsx, .xls, .csv). First row should hold the column headings.</span></label>
+  <input id="file" type="file" accept=".xlsx,.xls,.xlsm,.csv" hidden>
+  <div id="mapper" hidden>
+    <div class="maprow">
+      <div><label for="mSheet">Sheet</label><select id="mSheet"></select></div>
+      <div><label for="mDate">Date column</label><select id="mDate"></select></div>
+      <div><label for="mAmt">Amount column</label><select id="mAmt"></select></div>
+      <div><label for="mCur">Currency column</label><select id="mCur"></select></div>
+      <div id="fixWrap" hidden><label for="mFix">Currency for every row</label><select id="mFix"></select></div>
+    </div>
+  </div>
+  <div class="summary" id="bsum"></div>
+  <div class="prev" id="bprev"></div>
+  <div class="btnrow"><button class="btn" type="button" id="bdl" hidden>Download Excel with AED</button><button class="ghost2" type="button" id="btpl">Download a blank template</button><span class="stamp" id="bmsg"></span></div>
+</div>
+</div></section>
 <footer class="band foot"><div class="wrap" id="foot">Source: <a href="https://www.centralbank.ae/en/forex-eibor/exchange-rates/">Central Bank of the UAE, Exchange Rates</a>.</div><p class="credit">Created by <strong>Ahmed Habib</strong> · <a href="tel:+971505067013">+971 50 506 7013</a></p></footer>
 
 <script>
@@ -228,15 +257,144 @@ function table(){
   const list=Object.keys(day.rates).sort((a,b)=>a==='USD'?-1:b==='USD'?1:a.localeCompare(b)).filter(c=>!q||c.toLowerCase().includes(q)||(NAMES[c]||'').toLowerCase().includes(q));
   $('rows').innerHTML=list.length?list.map(c=>{const v=day.rates[c],f=day.flags.includes(c);return `<tr data-c="${esc(c)}"${c===st.code?' class="sel"':''}><td class="code">${esc(c)}</td><td>${esc(NAMES[c]||c)}</td><td class="n${f?' flag':''}">${fmtRate(v)}${f?' ⚠':''}</td><td class="n hide-s">${inv(v)}</td></tr>`}).join(''):`<tr><td colspan="4">No currency matches “${esc(q)}”.</td></tr>`;
 }
+
+// ---------- Excel batch conversion ----------
+const normName=s=>String(s).toLowerCase().replace(/[^a-z]/g,'');
+const ALIAS={'$':'USD','us$':'USD','usdollar':'USD','dollar':'USD','€':'EUR','eur':'EUR','£':'GBP','gbp':'GBP','pound':'GBP','sterling':'GBP','¥':'JPY','yen':'JPY','₹':'INR','rs':'INR','sr':'SAR','riyal':'SAR','dirham':'AED','dhs':'AED','dh':'AED','aed':'AED'};
+let NAME2CODE=null;
+function curCode(v){
+  if(v==null||v==='')return null;
+  const s=String(v).trim();if(!s)return null;
+  if(!NAME2CODE){NAME2CODE={};for(const [c,n] of Object.entries(NAMES)){NAME2CODE[normName(n)]=c;NAME2CODE[c.toLowerCase()]=c}}
+  const k=s.toLowerCase();
+  if(ALIAS[k])return ALIAS[k];
+  if(/^[a-z]{3}$/i.test(s))return s.toUpperCase();
+  return NAME2CODE[normName(s)]||ALIAS[normName(s)]||null;
+}
+const serialToIso=n=>{const p=XLSX.SSF.parse_date_code(n);return p&&p.y>1900?`${p.y}-${pad(p.m)}-${pad(p.d)}`:null};
+const isoToSerial=iso=>{const [y,m,d]=iso.split('-').map(Number);return (Date.UTC(y,m-1,d)-Date.UTC(1899,11,30))/864e5};
+function cellDate(c){
+  if(!c)return null;
+  if(c.t==='d'&&c.v instanceof Date){const d=c.v;return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
+  if(c.t==='n')return c.v>20000&&c.v<80000?serialToIso(c.v):null;
+  return parseDate(String(c.w??c.v));
+}
+function cellNum(c){
+  if(!c)return null;if(c.t==='n')return c.v;
+  const s=String(c.v).replace(/[,\s]/g,'').replace(/^\((.*)\)$/,'-$1').replace(/[^0-9.\-]/g,'');
+  const v=parseFloat(s);return isFinite(v)?v:null;
+}
+let WB=null,FNAME='',HDR=[],HROW=0,RES=null;
+const bsum=$('bsum'),bprev=$('bprev'),bdl=$('bdl'),bmsg=$('bmsg');
+function guess(hdr,re){const i=hdr.findIndex(h=>re.test(String(h||'')));return i}
+function sheetHeader(ws){
+  const rg=XLSX.utils.decode_range(ws['!ref']||'A1');
+  for(let r=rg.s.r;r<=Math.min(rg.e.r,rg.s.r+20);r++){
+    const row=[];let n=0;for(let c=rg.s.c;c<=rg.e.c;c++){const cell=ws[XLSX.utils.encode_cell({r,c})];const v=cell?String(cell.w??cell.v).trim():'';row.push(v);if(v)n++}
+    if(n>=2)return{r,row,rg};
+  }
+  return{r:rg.s.r,row:[],rg};
+}
+function fillMap(){
+  const ws=WB.Sheets[$('mSheet').value];const {r,row}=sheetHeader(ws);HROW=r;HDR=row;
+  const opts=(none)=>(none?'<option value="-1">'+none+'</option>':'')+row.map((h,i)=>`<option value="${i}">${esc(XLSX.utils.encode_col(i))}: ${esc(h||'(blank)')}</option>`).join('');
+  $('mDate').innerHTML=opts();$('mAmt').innerHTML=opts();$('mCur').innerHTML=opts('No currency column - same for all rows');
+  let d=guess(row,/date|day|posted|period/i),a=guess(row,/amount|amt|value|total|sum|price|debit|credit/i),c=guess(row,/curr|ccy|cur\b/i);
+  $('mDate').value=String(d<0?0:d);$('mAmt').value=String(a<0?Math.min(1,row.length-1):a);$('mCur').value=String(c);
+  $('mFix').innerHTML=Object.keys(NAMES).sort().map(c=>`<option value="${c}">${c} · ${esc(NAMES[c])}</option>`).join('');$('mFix').value='USD';
+  $('fixWrap').hidden=c>=0;
+}
+async function runBatch(){
+  if(!WB)return;
+  const ws=WB.Sheets[$('mSheet').value],rg=XLSX.utils.decode_range(ws['!ref']);
+  const dc=+$('mDate').value,ac=+$('mAmt').value,cc=+$('mCur').value,fix=$('mFix').value;
+  $('fixWrap').hidden=cc>=0;
+  bsum.textContent='Working…';bdl.hidden=true;
+  const out=[];let ok=0,bad=0,total=0,fall=0;
+  for(let r=HROW+1;r<=rg.e.r;r++){
+    const g=c=>ws[XLSX.utils.encode_cell({r,c:rg.s.c+c})];
+    const dcell=g(dc),acell=g(ac),ccell=cc>=0?g(cc):null;
+    if(!dcell&&!acell)continue;
+    const iso=cellDate(dcell),amt=cellNum(acell),code=cc>=0?curCode(ccell&&(ccell.w??ccell.v)):fix;
+    let rateDate=null,rate=null,aed=null,note='';
+    if(!iso)note='Date not recognised';
+    else if(amt==null)note='Amount not recognised';
+    else if(!code)note='Currency not recognised';
+    else if(iso<MIN)note=`Date before CBUAE history in this tool (${dmy(MIN)})`;
+    else if(iso>MAX)note=`No CBUAE rate yet for this date (latest ${dmy(MAX)})`;
+    else if(code==='AED'){rateDate=iso;rate=1;aed=amt;note='Already in AED'}
+    else{
+      const R=await resolve(iso);
+      if(!R||!R.rates[code])note=`CBUAE published no ${code} rate on or before this date`;
+      else{rateDate=R.date;rate=R.rates[code];aed=Math.round(amt*rate*100)/100;
+        if(!R.exact){note=`No CBUAE rate on ${dmy(iso)} (weekend/holiday): rate of ${dmy(R.date)} used`;fall++}
+        if(R.flags.includes(code))note=(note?note+'. ':'')+'Check: CBUAE rate far off neighbouring days';}
+    }
+    if(aed!=null){ok++;total+=aed}else bad++;
+    out.push({r,iso,amt,code,rateDate,rate,aed,note});
+  }
+  RES={ws,rg,out};
+  bsum.innerHTML=`<b>${ok}</b> row${ok==1?'':'s'} converted, total <b>AED ${fmt(total)}</b>`+(fall?` · ${fall} used the previous business day's rate`:'')+(bad?` · <span class="err2">${bad} row${bad==1?'':'s'} need attention (see Note column)</span>`:'');
+  const head=['Row','Date','Amount','Currency','CBUAE rate date','Rate (AED per unit)','Amount in AED','Note'];
+  bprev.innerHTML=`<table><thead><tr>${head.map((x,i)=>`<th${i==2||i==5||i==6?' class="n"':''}>${x}</th>`).join('')}</tr></thead><tbody>${out.slice(0,8).map(o=>`<tr><td>${o.r+1}</td><td>${o.iso?dmy(o.iso):''}</td><td class="n">${o.amt!=null?fmt(o.amt):''}</td><td>${esc(o.code||'')}</td><td>${o.rateDate?dmy(o.rateDate):''}</td><td class="n">${o.rate!=null?fmtRate(o.rate):''}</td><td class="n">${o.aed!=null?fmt(o.aed):''}</td><td>${esc(o.note)}</td></tr>`).join('')}</tbody></table>`+(out.length>8?`<p class="stamp">Showing 8 of ${out.length} rows. The download has all of them.</p>`:'');
+  bdl.hidden=!out.length;
+}
+function download(){
+  if(!RES)return;
+  const {ws,rg,out}=RES,c0=rg.e.c+1,E=(r,c)=>XLSX.utils.encode_cell({r,c});
+  const heads=['CBUAE rate date','CBUAE rate (AED per 1 unit)','Amount in AED','Note'];
+  heads.forEach((t,i)=>ws[E(HROW,c0+i)]={t:'s',v:t});
+  for(const o of out){
+    if(o.rateDate)ws[E(o.r,c0)]={t:'n',v:isoToSerial(o.rateDate),z:'dd/mm/yyyy'};
+    if(o.rate!=null)ws[E(o.r,c0+1)]={t:'n',v:o.rate,z:'0.000000'};
+    if(o.aed!=null)ws[E(o.r,c0+2)]={t:'n',v:o.aed,z:'#,##0.00'};
+    if(o.note)ws[E(o.r,c0+3)]={t:'s',v:o.note};
+  }
+  ws['!ref']=XLSX.utils.encode_range({s:rg.s,e:{r:rg.e.r,c:c0+3}});
+  const cols=ws['!cols']||[];cols[c0]={wch:14};cols[c0+1]={wch:16};cols[c0+2]={wch:16};cols[c0+3]={wch:48};ws['!cols']=cols;
+  const about=[['CBUAE AED conversion'],[''],['Source','Central Bank of the UAE - exchange rates against UAE Dirham (published for VAT-related obligations)'],['Source link',LATEST.sourceUrl],['Rule','Rate of the transaction date. Where CBUAE published no rate (weekend or holiday), the last published rate before it is used, as CBUAE directs.'],['Rates available',`${dmy(MIN)} to ${dmy(MAX)}`],['Prepared on',dmy(new Date().toISOString().slice(0,10))],['Created by','Ahmed Habib · +971 50 506 7013']];
+  const name='CBUAE source';if(WB.SheetNames.includes(name)){delete WB.Sheets[name];WB.SheetNames=WB.SheetNames.filter(n=>n!==name)}
+  const aws=XLSX.utils.aoa_to_sheet(about);aws['!cols']=[{wch:16},{wch:100}];XLSX.utils.book_append_sheet(WB,aws,name);
+  const fn=FNAME.replace(/\.(xlsx|xlsm|xls|csv)$/i,'')+'_AED.xlsx';
+  try{XLSX.writeFile(WB,fn);bmsg.textContent=`Saved ${fn}`}catch(e){bmsg.textContent='Download blocked by this browser.'}
+  loadFile._last&&loadFile(loadFile._last); // re-read the original so a second download starts clean
+}
+async function loadFile(f){
+  loadFile._last=f;FNAME=f.name;bmsg.textContent='';
+  if(typeof XLSX==='undefined'){bsum.innerHTML='<span class="err2">The Excel reader did not load. Check your internet connection and reload the page.</span>';return}
+  try{const buf=await f.arrayBuffer();WB=XLSX.read(buf,{type:'array',raw:/\.csv$/i.test(f.name)})}
+  catch(e){bsum.innerHTML='<span class="err2">Could not read that file. Save it as .xlsx or .csv and try again.</span>';return}
+  const keep=$('mSheet').value;
+  $('mSheet').innerHTML=WB.SheetNames.map(n=>`<option>${esc(n)}</option>`).join('');
+  if(WB.SheetNames.includes(keep))$('mSheet').value=keep;
+  $('mapper').hidden=false;$('drop').querySelector('strong').textContent=f.name;
+  if(!loadFile._quiet)fillMap();
+  await runBatch();
+}
+$('file').addEventListener('change',e=>{const f=e.target.files[0];if(f){loadFile._quiet=false;loadFile(f)}});
+const drop=$('drop');
+drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('over')});
+drop.addEventListener('dragleave',()=>drop.classList.remove('over'));
+drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('over');const f=e.dataTransfer.files[0];if(f){loadFile._quiet=false;loadFile(f)}});
+$('mSheet').addEventListener('change',()=>{fillMap();runBatch()});
+for(const id of ['mDate','mAmt','mCur','mFix'])$(id).addEventListener('change',runBatch);
+bdl.addEventListener('click',()=>{loadFile._quiet=true;download()});
+$('btpl').addEventListener('click',()=>{
+  if(typeof XLSX==='undefined')return;
+  const ws=XLSX.utils.aoa_to_sheet([['Date','Amount','Currency','Description'],[new Date(Date.UTC(2024,2,15)),1000,'USD','Example - replace'],[new Date(Date.UTC(2023,5,30)),2500.5,'EUR','Example - replace']],{cellDates:true});
+  ws['A2'].z=ws['A3'].z='dd/mm/yyyy';ws['!cols']=[{wch:12},{wch:12},{wch:10},{wch:30}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Transactions');XLSX.writeFile(wb,'AED_conversion_template.xlsx');
+});
 $('q').addEventListener('input',table);
 $('rows').addEventListener('click',e=>{const tr=e.target.closest('tr[data-c]');if(!tr)return;st.code=tr.dataset.c;$('cur').value=st.code;calc();window.scrollTo({top:0,behavior:'smooth'})});
 
 Promise.all([fetch('hist/index.json',{cache:'no-store'}).then(r=>r.json()),fetch('rates.json',{cache:'no-store'}).then(r=>r.json())]).then(async([i,l])=>{
   IDX=i;LATEST=l;NAMES=Object.assign({},i.names,Object.fromEntries(l.rates.map(r=>[r.code,r.name])));
-  build();$('tableBand').hidden=false;await load();
+  build();$('tableBand').hidden=false;$('bulkBand').hidden=false;await load();
   $('foot').innerHTML=`Source: <a href="${esc(l.sourceUrl)}">Central Bank of the UAE, Exchange Rates</a> and its monthly historical files (published for VAT-related obligations). CBUAE publishes Monday to Friday, based on rates at 6pm UAE time. History runs from ${esc(nice(i.first))}. A few days in CBUAE's own files carry a rate far off the days around it; those are marked ⚠ and kept exactly as published. Very small rates (e.g. LBP, IRR) are published with few significant digits, so large conversions in those currencies are approximate.`;
 }).catch(e=>{app.innerHTML=`<div class="err">Couldn't load the rate files. Check rates directly at <a href="https://www.centralbank.ae/en/forex-eibor/exchange-rates/">centralbank.ae</a>.</div>`});
 }
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </body>
 </html>
