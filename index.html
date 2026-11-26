@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CBUAE AED Converter</title>
+<style>
+/* VOICE: calm, exact, professional - a tax adviser's working tool
+   IDEA: a bank's posted FX rate slip - amount in, dirham figure out, source stamped
+   PICTURE: the live AED result, large, beside the inputs
+   COLOUR and TYPE: BDO palette - charcoal ink, pale charcoal ground, red for emphasis; Trebuchet
+   LAYOUT: converter band on top, searchable full rate table below, source line at foot */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#1f1f1f);--panel:light-dark(#e7e7e7,#2b2b2b);--ink:light-dark(#333333,#f0f0f0);
+--muted:light-dark(#5b6e7f,#a9b6c2);--line:light-dark(#d4d4d4,#3d3d3d);--red:#e81a3b;--burg:light-dark(#98002e,#ff6b84);
+--field:light-dark(#ffffff,#1a1a1a);--warn:#d67900}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Trebuchet MS",Trebuchet,"Proxima Nova",system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(24px,4vw,56px) max(5vw,16px)}
+.wrap{max-width:1180px;margin:0 auto}
+h1{font-size:clamp(28px,4vw,42px);line-height:1.05;margin:0 0 6px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 24px}
+.conv{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:0;background:var(--panel);border-radius:6px;overflow:hidden}
+.inputs{padding:clamp(20px,3vw,36px);display:grid;gap:16px;align-content:start}
+label{display:block;font-size:14px;color:var(--muted);margin-bottom:6px}
+input,select{width:100%;font:inherit;font-size:17px;padding:11px 12px;min-height:48px;border:1px solid var(--line);border-radius:4px;background:var(--field);color:var(--ink)}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.dir{display:flex;gap:0;border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--field)}
+.dir button{flex:1;min-height:44px;border:0;background:none;font:inherit;font-size:15px;color:var(--ink);cursor:pointer}
+.dir button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{min-height:40px;padding:0 14px;border:1px solid var(--line);border-radius:20px;background:var(--field);color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.chips button.on{border-color:var(--red);color:var(--burg);font-weight:bold}
+.result{background:var(--bg);margin:10px;border-radius:4px;padding:clamp(20px,3vw,36px);display:flex;flex-direction:column;justify-content:center;gap:10px;border-top:4px solid var(--red)}
+.from{color:var(--muted);font-size:17px}
+.big{font-size:clamp(34px,6vw,60px);line-height:1.05;font-weight:bold;white-space:nowrap;overflow-wrap:normal;overflow-x:auto}
+.big small{font-size:.45em;color:var(--burg);margin-left:6px}
+.rate{font-size:15px;color:var(--ink)}
+.rate span{white-space:nowrap}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{min-height:44px;padding:0 18px;border:0;border-radius:4px;background:var(--red);color:#fff;font:inherit;font-size:15px;cursor:pointer}
+.stamp{font-size:13px;color:var(--muted)}
+.stale{color:var(--warn);font-weight:bold}
+h2{font-size:24px;margin:0 0 12px}
+.tools{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:12px}
+.tools>div{flex:1 1 260px;max-width:420px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{text-align:left;font-size:14px;color:var(--muted);font-weight:normal;border-bottom:2px solid var(--ink);padding:8px}
+td{padding:9px 8px;border-bottom:1px solid var(--line)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tbody tr{cursor:pointer}tbody tr:hover{background:var(--panel)}
+tr.sel td{background:var(--panel);font-weight:bold}
+.code{font-weight:bold;color:var(--burg)}
+.foot{font-size:14px;color:var(--muted);border-top:1px solid var(--line)}
+.foot a{color:var(--burg)}
+.credit{margin:14px auto 0;max-width:1180px;font-size:15px;color:var(--ink)}.credit strong{color:var(--burg)}.credit a{white-space:nowrap;text-decoration:none}
+.daterow{display:flex;gap:8px}.daterow input{flex:1}.ghost{min-height:48px;padding:0 14px;border:1px solid var(--line);border-radius:4px;background:var(--field);color:var(--ink);font:inherit;font-size:15px;cursor:pointer;white-space:nowrap}
+.note{font-size:14px;padding:10px 12px;border-left:4px solid var(--warn);background:var(--bg)}.note:empty{display:none}
+td.flag{color:var(--warn)}
+.err{padding:20px;border-left:4px solid var(--red);background:var(--panel)}
+@media(max-width:760px){.conv{grid-template-columns:minmax(0,1fr)}.result{margin:0 10px 10px}}
+@media(max-width:600px){table{font-size:13px}.hide-s{display:none}}
+@media(prefers-reduced-motion:no-preference){.big{transition:color .25s}.big.flash{color:var(--red)}}
+</style>
+</head>
+<body>
+<section class="band"><div class="wrap">
+<h1>Currency to AED at CBUAE rates</h1>
+<p class="sub">Converts any currency published by the Central Bank of the UAE into UAE Dirham, and back, at the CBUAE rate for any business day since 1 January 2020. New rates are added every evening after CBUAE publishes.</p>
+<div id="app"><div class="err" id="loading">Loading CBUAE rates…</div></div>
+</div></section>
+
+<section class="band" id="tableBand" hidden><div class="wrap">
+<h2 id="tblTitle">All CBUAE rates</h2>
+<div class="tools"><div><label for="q">Search currency</label><input id="q" type="search" placeholder="e.g. rupee, EUR, riyal" autocomplete="off"></div></div>
+<table><thead><tr><th>Code</th><th>Currency</th><th class="n">1 unit = AED</th><th class="n hide-s">1 AED = unit</th></tr></thead><tbody id="rows"></tbody></table>
+</div></section>
+
+<footer class="band foot"><div class="wrap" id="foot">Source: <a href="https://www.centralbank.ae/en/forex-eibor/exchange-rates/">Central Bank of the UAE, Exchange Rates</a>.</div><p class="credit">Created by <strong>Ahmed Habib</strong> · <a href="tel:+971505067013">+971 50 506 7013</a></p></footer>
+
+<script>
+{
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id);
+const app=$('app');
+const POP=['USD','EUR','GBP','SAR','INR','PKR'];
+let IDX=null,LATEST=null,NAMES={},cache={},day=null;
+const st={amt:'1000',code:'USD',dir:'to',date:''};
+try{const s=JSON.parse(localStorage.getItem('cbuaeConv')||'{}');Object.assign(st,s)}catch(e){}
+const save=()=>{try{localStorage.setItem('cbuaeConv',JSON.stringify(st))}catch(e){}};
+const fmt=(v,dp=2)=>v.toLocaleString('en-US',{minimumFractionDigits:dp,maximumFractionDigits:dp});
+const fmtRate=v=>v>=0.01?String(+v.toFixed(6)):String(+v.toPrecision(4));
+const inv=v=>{const x=1/v;return x>=1000?fmt(x,2):String(+x.toPrecision(6))};
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const nice=ds=>{const [y,m,d]=ds.split('-').map(Number);const w=new Date(Date.UTC(y,m-1,d)).getUTCDay();return `${DOW[w]} ${d} ${MON[m-1]} ${y}`};
+const prevMonth=m=>{let [y,mm]=m.split('-').map(Number);mm--;if(!mm){mm=12;y--}return `${y}-${String(mm).padStart(2,'0')}`};
+async function month(m){
+  if(cache[m]!==undefined)return cache[m];
+  cache[m]=null;
+  if(IDX.months.includes(m)){try{const r=await fetch(`hist/${m}.json`);if(r.ok)cache[m]=await r.json()}catch(e){}}
+  if(LATEST&&LATEST.rateDate&&LATEST.rateDate.startsWith(m)){
+    cache[m]=cache[m]||{month:m,days:{}};
+    if(!cache[m].days[LATEST.rateDate])cache[m].days[LATEST.rateDate]=Object.fromEntries(LATEST.rates.map(r=>[r.code,r.aed]));
+  }
+  return cache[m];
+}
+// find rate set for requested date, falling back to last published business day
+async function resolve(ds){
+  let m=ds.slice(0,7);
+  for(let i=0;i<3;i++){
+    const M=await month(m);
+    if(M){const ks=Object.keys(M.days).filter(k=>k<=ds).sort();
+      if(ks.length){const k=ks[ks.length-1];return{date:k,rates:M.days[k],flags:(M.flags&&M.flags[k])||[],exact:k===ds}}}
+    m=prevMonth(m);
+  }
+  return null;
+}
+function build(){
+  app.innerHTML=`<div class="conv">
+  <div class="inputs">
+    <div><label for="dt">Rate date</label><div class="daterow"><input id="dt" type="date"><button class="ghost" type="button" id="latest">Latest</button></div></div>
+    <div><label>Direction</label><div class="dir" role="group" aria-label="Direction">
+      <button type="button" id="dTo">Currency → AED</button><button type="button" id="dFrom">AED → Currency</button></div></div>
+    <div><label for="amt" id="amtLbl">Amount</label><input id="amt" inputmode="decimal" autocomplete="off"></div>
+    <div><label for="cur">Currency</label><select id="cur"></select></div>
+    <div class="chips" id="chips">${POP.map(c=>`<button type="button" data-c="${c}">${c}</button>`).join('')}</div>
+  </div>
+  <div class="result" aria-live="polite">
+    <div class="note" id="note"></div>
+    <div class="from" id="from"></div>
+    <div class="big" id="big"></div>
+    <div class="rate" id="rate"></div>
+    <div class="actions"><button class="btn" type="button" id="copy">Copy working</button><span class="stamp" id="copied"></span></div>
+    <div class="stamp" id="stamp"></div>
+  </div></div>`;
+  const dt=$('dt');dt.min=IDX.first;dt.max=IDX.last>(LATEST.rateDate||'')?IDX.last:LATEST.rateDate;
+  if(!st.date||st.date<dt.min||st.date>dt.max)st.date=dt.max;dt.value=st.date;
+  $('amt').value=st.amt;
+  $('amt').addEventListener('input',()=>{st.amt=$('amt').value;calc()});
+  $('cur').addEventListener('change',()=>{st.code=$('cur').value;calc()});
+  dt.addEventListener('change',()=>{if(dt.value){st.date=dt.value<dt.min?dt.min:dt.value>dt.max?dt.max:dt.value;dt.value=st.date;load()}});
+  $('latest').addEventListener('click',()=>{st.date=dt.max;dt.value=st.date;load()});
+  $('dTo').addEventListener('click',()=>{st.dir='to';calc()});
+  $('dFrom').addEventListener('click',()=>{st.dir='from';calc()});
+  $('chips').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;st.code=b.dataset.c;$('cur').value=st.code;calc()});
+  $('copy').addEventListener('click',async()=>{const t=$('copied');
+    try{await navigator.clipboard.writeText(working());t.textContent='Copied'}catch(e){t.textContent='Copy blocked - select the text instead'}
+    setTimeout(()=>t.textContent='',2500)});
+}
+async function load(){
+  save();
+  day=await resolve(st.date);
+  if(!day){$('note').textContent='No CBUAE rates found on or before this date.';return}
+  const codes=Object.keys(day.rates).sort((a,b)=>a==='USD'?-1:b==='USD'?1:a.localeCompare(b));
+  $('cur').innerHTML=codes.map(c=>`<option value="${esc(c)}">${esc(c)} · ${esc(NAMES[c]||c)}</option>`).join('');
+  if(!day.rates[st.code])st.code='USD';
+  $('cur').value=st.code;
+  for(const b of $('chips').querySelectorAll('button'))b.disabled=!day.rates[b.dataset.c];
+  const notes=[];
+  if(!day.exact)notes.push(`CBUAE published no rate for ${nice(st.date)} (weekend or holiday). Showing the last published rate, ${nice(day.date)}.`);
+  $('note').textContent=notes.join(' ');
+  $('tblTitle').textContent=`CBUAE rates for ${nice(day.date)}`;
+  const age=(Date.now()-new Date(LATEST.fetchedAt))/864e5;
+  $('stamp').innerHTML=`Rate date: ${esc(nice(day.date))} · history ${esc(nice(IDX.first))} to ${esc(nice(dtMax()))}`+(age>3?` · <span class="stale">Not refreshed for ${Math.floor(age)} days - check CBUAE directly</span>`:'');
+  table();calc();
+}
+const dtMax=()=>$('dt').max;
+function num(){const v=parseFloat(String(st.amt).replace(/,/g,''));return isFinite(v)?v:0}
+function working(){
+  const r=day.rates[st.code],a=num(),c=st.code;
+  return st.dir==='to'
+    ?`${c} ${fmt(a)} × ${fmtRate(r)} = AED ${fmt(a*r)} (CBUAE rate, ${nice(day.date)})`
+    :`AED ${fmt(a)} ÷ ${fmtRate(r)} = ${c} ${fmt(a/r)} (CBUAE rate, ${nice(day.date)})`;
+}
+function calc(){
+  if(!day)return;save();
+  const c=st.code,r=day.rates[c],a=num(),to=st.dir==='to',name=NAMES[c]||c;
+  $('dTo').setAttribute('aria-pressed',to);$('dFrom').setAttribute('aria-pressed',!to);
+  $('amtLbl').textContent=to?`Amount in ${c}`:'Amount in AED';
+  $('from').textContent=to?`${c} ${fmt(a)} · ${name}`:`AED ${fmt(a)} in ${name}`;
+  const big=$('big');
+  big.innerHTML=to?`${fmt(a*r)}<small>AED</small>`:`${fmt(a/r)}<small>${esc(c)}</small>`;
+  big.classList.add('flash');setTimeout(()=>big.classList.remove('flash'),250);
+  let rate=`<span>1 ${esc(c)} = ${fmtRate(r)} AED</span> · <span>1 AED = ${inv(r)} ${esc(c)}</span>`;
+  if(day.flags.includes(c))rate+=`<br><span class="stale">This ${esc(c)} rate is far off the days either side of it in CBUAE's own file. Check it against the CBUAE PDF before relying on it.</span>`;
+  $('rate').innerHTML=rate;
+  for(const b of $('chips').querySelectorAll('button'))b.classList.toggle('on',b.dataset.c===c);
+  for(const tr of document.querySelectorAll('#rows tr'))tr.classList.toggle('sel',tr.dataset.c===c);
+}
+function table(){
+  const q=$('q').value.trim().toLowerCase();
+  const list=Object.keys(day.rates).sort((a,b)=>a==='USD'?-1:b==='USD'?1:a.localeCompare(b)).filter(c=>!q||c.toLowerCase().includes(q)||(NAMES[c]||'').toLowerCase().includes(q));
+  $('rows').innerHTML=list.length?list.map(c=>{const v=day.rates[c],f=day.flags.includes(c);return `<tr data-c="${esc(c)}"${c===st.code?' class="sel"':''}><td class="code">${esc(c)}</td><td>${esc(NAMES[c]||c)}</td><td class="n${f?' flag':''}">${fmtRate(v)}${f?' ⚠':''}</td><td class="n hide-s">${inv(v)}</td></tr>`}).join(''):`<tr><td colspan="4">No currency matches “${esc(q)}”.</td></tr>`;
+}
+$('q').addEventListener('input',table);
+$('rows').addEventListener('click',e=>{const tr=e.target.closest('tr[data-c]');if(!tr)return;st.code=tr.dataset.c;$('cur').value=st.code;calc();window.scrollTo({top:0,behavior:'smooth'})});
+
+Promise.all([fetch('hist/index.json',{cache:'no-store'}).then(r=>r.json()),fetch('rates.json',{cache:'no-store'}).then(r=>r.json())]).then(async([i,l])=>{
+  IDX=i;LATEST=l;NAMES=Object.assign({},i.names,Object.fromEntries(l.rates.map(r=>[r.code,r.name])));
+  build();$('tableBand').hidden=false;await load();
+  $('foot').innerHTML=`Source: <a href="${esc(l.sourceUrl)}">Central Bank of the UAE, Exchange Rates</a> and its monthly historical files (published for VAT-related obligations). CBUAE publishes Monday to Friday, based on rates at 6pm UAE time. History runs from ${esc(nice(i.first))}. A few days in CBUAE's own files carry a rate far off the days around it; those are marked ⚠ and kept exactly as published. Very small rates (e.g. LBP, IRR) are published with few significant digits, so large conversions in those currencies are approximate.`;
+}).catch(e=>{app.innerHTML=`<div class="err">Couldn't load the rate files. Check rates directly at <a href="https://www.centralbank.ae/en/forex-eibor/exchange-rates/">centralbank.ae</a>.</div>`});
+}
+</script>
+</body>
+</html>

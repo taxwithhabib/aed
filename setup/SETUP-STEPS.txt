@@ -1,0 +1,49 @@
+CBUAE AED Converter - putting it on GitHub (about 10 minutes, all in the browser)
+=========================================================================
+
+1. Create a free account
+   Go to https://github.com/signup and sign up. Your username becomes part of the web address.
+
+2. Create the repository
+   Click the "+" at the top right > New repository.
+   - Repository name: aed-converter
+   - Public (free hosting needs a public repository)
+   - Leave "Add a README" unticked
+   Click "Create repository".
+
+3. Upload the files
+   On the new, empty repository page click the link "uploading an existing file".
+   In Finder, open the unzipped aed-converter folder, select everything you can see
+   (index.html, rates.json, README.md and the hist, scripts and setup folders)
+   and drag it all into the browser window. Wait for the upload to finish, then click
+   "Commit changes".
+
+4. Add the nightly update job
+   Mac hides the .github folder, so add this one file by hand:
+   - In the repository click "Add file" > "Create new file".
+   - In the name box type exactly:  .github/workflows/update-rates.yml
+     (typing the "/" creates the folders automatically)
+   - Open setup/update-rates.yml from the folder on your Mac (TextEdit is fine),
+     copy all of it and paste it into the big box.
+   - Click "Commit changes..." and then "Commit changes".
+
+5. Let the job save its updates
+   Settings (top of the repository) > Actions > General > scroll to
+   "Workflow permissions" > choose "Read and write permissions" > Save.
+
+6. Switch on the website
+   Settings > Pages. Under "Build and deployment":
+   - Source: Deploy from a branch
+   - Branch: main, folder: / (root) > Save
+   After 1-2 minutes, refresh that page. It shows your address, e.g.
+   https://YOUR-USERNAME.github.io/aed-converter/
+   Open it on your work laptop and share it with colleagues. No sign-in needed.
+
+7. Test the nightly update once
+   Actions tab > "Update CBUAE rates" (left side) > "Run workflow" > "Run workflow".
+   After about a minute you should see a green tick.
+   - Green tick: done. It now runs by itself every weekday evening (7:20 PM, with a
+     second try at 10:20 PM Dubai time) and adds each new day to the history.
+   - Red cross: open it and look at the last lines. If it says
+     "Could not reach CBUAE", send that message to Claude.
+   GitHub emails you if a nightly run ever fails.
