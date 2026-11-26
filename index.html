@@ -81,12 +81,6 @@ td.flag{color:var(--warn)}
 <div id="app"><div class="err" id="loading">Loading CBUAE rates…</div></div>
 </div></section>
 
-<section class="band" id="tableBand" hidden><div class="wrap">
-<h2 id="tblTitle">All CBUAE rates</h2>
-<div class="tools"><div><label for="q">Search currency</label><input id="q" type="search" placeholder="e.g. rupee, EUR, riyal" autocomplete="off"></div></div>
-<table><thead><tr><th>Code</th><th>Currency</th><th class="n">1 unit = AED</th><th class="n hide-s">1 AED = unit</th></tr></thead><tbody id="rows"></tbody></table>
-</div></section>
-
 <section class="band" id="bulkBand" hidden><div class="wrap">
 <h2>Convert an Excel file</h2>
 <p class="sub" style="margin-bottom:16px">Upload a sheet with a date, an amount and a currency on each row. You get the same workbook back with two columns added to every row: Rate as per CBUAE and Amount in AED. The file is read in your browser and is not uploaded anywhere.</p>
@@ -107,6 +101,13 @@ td.flag{color:var(--warn)}
   <div class="btnrow"><button class="btn" type="button" id="bdl" hidden>Download Excel with AED</button><button class="ghost2" type="button" id="btpl">Download a blank template</button><span class="stamp" id="bmsg"></span></div>
 </div>
 </div></section>
+
+<section class="band" id="tableBand" hidden><div class="wrap">
+<h2 id="tblTitle">All CBUAE rates</h2>
+<div class="tools"><div><label for="q">Search currency</label><input id="q" type="search" placeholder="e.g. rupee, EUR, riyal" autocomplete="off"></div></div>
+<table><thead><tr><th>Code</th><th>Currency</th><th class="n">1 unit = AED</th><th class="n hide-s">1 AED = unit</th></tr></thead><tbody id="rows"></tbody></table>
+</div></section>
+
 <footer class="band foot"><div class="wrap" id="foot">Source: <a href="https://www.centralbank.ae/en/forex-eibor/exchange-rates/">Central Bank of the UAE, Exchange Rates</a>.</div><p class="credit">Created by <strong>Ahmed Saeed Habib</strong> · <a href="tel:+971505067013">+971 50 506 7013</a></p></footer>
 
 <script>
