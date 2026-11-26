@@ -179,9 +179,13 @@ function build(){
     try{await navigator.clipboard.writeText(working());t.textContent='Copied'}catch(e){t.textContent='Copy blocked - select the text instead'}
     setTimeout(()=>t.textContent='',2500)});
 }
+let loadSeq=0;
 async function load(){
   save();
-  day=await resolve(st.date);
+  const my=++loadSeq,want=st.date;
+  const got=await resolve(want);
+  if(my!==loadSeq)return; // a newer date was chosen while this one loaded
+  day=got;
   if(!day){$('note').textContent='No CBUAE rates found on or before this date.';return}
   const codes=Object.keys(day.rates).sort((a,b)=>a==='USD'?-1:b==='USD'?1:a.localeCompare(b));
   $('cur').innerHTML=codes.map(c=>`<option value="${esc(c)}">${esc(c)} · ${esc(NAMES[c]||c)}</option>`).join('');
@@ -189,7 +193,7 @@ async function load(){
   $('cur').value=st.code;
   for(const b of $('chips').querySelectorAll('button'))b.disabled=!day.rates[b.dataset.c];
   const notes=[];
-  if(!day.exact)notes.push(`CBUAE published no rate for ${nice(st.date)} (weekend or holiday). Showing the last published rate, ${nice(day.date)}.`);
+  if(!day.exact)notes.push(`CBUAE published no rate for ${nice(want)} (weekend or holiday). Showing the last published rate, ${nice(day.date)}.`);
   $('note').textContent=notes.join(' ');
   $('tblTitle').textContent=`CBUAE rates for ${nice(day.date)}`;
   const age=(Date.now()-new Date(LATEST.fetchedAt))/864e5;
