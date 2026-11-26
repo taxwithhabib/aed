@@ -36,7 +36,7 @@ CBUAE AED Converter - putting it on GitHub (about 10 minutes, all in the browser
    - Source: Deploy from a branch
    - Branch: main, folder: / (root) > Save
    After 1-2 minutes, refresh that page. It shows your address, e.g.
-   https://YOUR-USERNAME.github.io/aed-converter/
+   https://taxwithhabib.github.io/aed/
    Open it on your work laptop and share it with colleagues. No sign-in needed.
 
 7. Test the nightly update once

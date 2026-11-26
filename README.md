@@ -1,6 +1,10 @@
 # CBUAE AED Converter
 
-Converts any currency published by the Central Bank of the UAE (CBUAE) into UAE Dirham, and back, at the CBUAE rate for any business day since 1 January 2020.
+Live: https://taxwithhabib.github.io/aed/
+
+Created by Ahmed Saeed Habib
+
+Converts any currency published by the Central Bank of the UAE (CBUAE) into UAE Dirham, and back, at the CBUAE rate for any business day since 1 January 2018.
 
 - `index.html` - the converter page
 - `rates.json` - latest CBUAE rates
