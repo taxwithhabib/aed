@@ -56,7 +56,7 @@ tr.sel td{background:var(--panel);font-weight:bold}
 .foot{font-size:14px;color:var(--muted);border-top:1px solid var(--line)}
 .foot a{color:var(--burg)}
 .credit{margin:14px auto 0;max-width:1180px;font-size:15px;color:var(--ink)}.credit strong{color:var(--burg);font-weight:800}.credit{border-top:3px solid var(--red);padding-top:12px}.credit a{white-space:nowrap;text-decoration:none}
-.daterow{display:flex;gap:8px}.daterow input{flex:1}.ghost{min-height:48px;padding:0 14px;border:1px solid var(--line);border-radius:4px;background:var(--field);color:var(--ink);font:inherit;font-size:15px;cursor:pointer;white-space:nowrap}
+.daterow{display:flex;gap:8px;position:relative}.daterow #dt{flex:1}.cal{width:48px;min-height:48px;display:grid;place-items:center;border:1px solid var(--line);border-radius:4px;background:var(--field);color:var(--ink);cursor:pointer;padding:0}.cal svg{width:20px;height:20px}#dtPick{position:absolute;left:0;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none;border:0;padding:0;min-height:0}.hint{font-size:13px;color:var(--muted);margin-top:4px}.hint.bad{color:var(--warn);font-weight:600}.ghost{min-height:48px;padding:0 14px;border:1px solid var(--line);border-radius:4px;background:var(--field);color:var(--ink);font:inherit;font-size:15px;cursor:pointer;white-space:nowrap}
 .note{font-size:14px;padding:10px 12px;border-left:4px solid var(--warn);background:var(--bg)}.note:empty{display:none}
 td.flag{color:var(--warn)}
 .err{padding:20px;border-left:4px solid var(--red);background:var(--panel)}
@@ -95,6 +95,23 @@ const fmtRate=v=>v>=0.01?String(+v.toFixed(6)):String(+v.toPrecision(4));
 const inv=v=>{const x=1/v;return x>=1000?fmt(x,2):String(+x.toPrecision(6))};
 const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const nice=ds=>{const [y,m,d]=ds.split('-').map(Number);const w=new Date(Date.UTC(y,m-1,d)).getUTCDay();return `${DOW[w]} ${d} ${MON[m-1]} ${y}`};
+let MIN='',MAX='';
+const pad=n=>String(n).padStart(2,'0');
+const dmy=iso=>{const [y,m,d]=iso.split('-');return `${d}/${m}/${y}`};
+const MONS={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,sept:9,oct:10,nov:11,dec:12};
+function parseDate(s){
+  s=s.trim().toLowerCase().replace(/,/g,' ').replace(/\s+/g,' ');let y,m,d,r;
+  if(r=s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})$/)){y=+r[1];m=+r[2];d=+r[3]}
+  else if(r=s.match(/^(\d{1,2})[-\/. ](\d{1,2})[-\/. ](\d{2}|\d{4})$/)){d=+r[1];m=+r[2];y=+r[3]}
+  else if(r=s.match(/^(\d{1,2})[-\/ ]?([a-z]{3,9})[-\/ ]?(\d{2}|\d{4})$/)){d=+r[1];m=MONS[r[2].slice(0,3)]||MONS[r[2]];y=+r[3]}
+  else if(r=s.match(/^(\d{2})(\d{2})(\d{4})$/)){d=+r[1];m=+r[2];y=+r[3]}
+  else return null;
+  if(y<100)y+=2000;
+  if(!m||m>12||!d||d>31)return null;
+  const t=new Date(Date.UTC(y,m-1,d));
+  if(t.getUTCMonth()!==m-1)return null;
+  return `${y}-${pad(m)}-${pad(d)}`;
+}
 const prevMonth=m=>{let [y,mm]=m.split('-').map(Number);mm--;if(!mm){mm=12;y--}return `${y}-${String(mm).padStart(2,'0')}`};
 async function month(m){
   if(cache[m]!==undefined)return cache[m];
@@ -120,7 +137,7 @@ async function resolve(ds){
 function build(){
   app.innerHTML=`<div class="conv">
   <div class="inputs">
-    <div><label for="dt">Rate date</label><div class="daterow"><input id="dt" type="date"><button class="ghost" type="button" id="latest">Latest</button></div></div>
+    <div><label for="dt">Rate date (dd/mm/yyyy)</label><div class="daterow"><input id="dt" type="text" inputmode="numeric" autocomplete="off" placeholder="dd/mm/yyyy" aria-describedby="dtHint"><button class="cal" type="button" id="calBtn" aria-label="Pick a date from the calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></button><input id="dtPick" type="date" tabindex="-1" aria-hidden="true"><button class="ghost" type="button" id="latest">Latest</button></div><div class="hint" id="dtHint">Type a date and press Enter, or use the calendar.</div></div>
     <div><label>Direction</label><div class="dir" role="group" aria-label="Direction">
       <button type="button" id="dTo">Currency → AED</button><button type="button" id="dFrom">AED → Currency</button></div></div>
     <div><label for="amt" id="amtLbl">Amount</label><input id="amt" inputmode="decimal" autocomplete="off"></div>
@@ -135,13 +152,26 @@ function build(){
     <div class="actions"><button class="btn" type="button" id="copy">Copy working</button><span class="stamp" id="copied"></span></div>
     <div class="stamp" id="stamp"></div>
   </div></div>`;
-  const dt=$('dt');dt.min=IDX.first;dt.max=IDX.last>(LATEST.rateDate||'')?IDX.last:LATEST.rateDate;
-  if(!st.date||st.date<dt.min||st.date>dt.max)st.date=dt.max;dt.value=st.date;
+  const dt=$('dt'),pick=$('dtPick');MIN=IDX.first;MAX=IDX.last>(LATEST.rateDate||'')?IDX.last:LATEST.rateDate;
+  pick.min=MIN;pick.max=MAX;
+  if(!st.date||st.date<MIN||st.date>MAX)st.date=MAX;dt.value=dmy(st.date);
   $('amt').value=st.amt;
   $('amt').addEventListener('input',()=>{st.amt=$('amt').value;calc()});
   $('cur').addEventListener('change',()=>{st.code=$('cur').value;calc()});
-  dt.addEventListener('change',()=>{if(dt.value){st.date=dt.value<dt.min?dt.min:dt.value>dt.max?dt.max:dt.value;dt.value=st.date;load()}});
-  $('latest').addEventListener('click',()=>{st.date=dt.max;dt.value=st.date;load()});
+  const hint=$('dtHint'),HINT='Type a date and press Enter, or use the calendar.';
+  const apply=iso=>{let msg='';
+    if(iso<MIN){msg=`History starts ${dmy(MIN)}, so that date is used.`;iso=MIN}
+    else if(iso>MAX){msg=`Latest CBUAE rate is ${dmy(MAX)}, so that date is used.`;iso=MAX}
+    st.date=iso;dt.value=dmy(iso);pick.value=iso;hint.textContent=msg||HINT;hint.classList.toggle('bad',!!msg);load()};
+  const commit=()=>{const v=dt.value.trim();if(!v){dt.value=dmy(st.date);return}
+    const iso=parseDate(v);
+    if(!iso){hint.textContent='Date not recognised. Use dd/mm/yyyy, e.g. 15/03/2023.';hint.classList.add('bad');return}
+    if(iso!==st.date||hint.classList.contains('bad'))apply(iso)};
+  dt.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();commit()}});
+  dt.addEventListener('blur',commit);
+  $('calBtn').addEventListener('click',()=>{pick.value=st.date;try{pick.showPicker()}catch(e){pick.focus();pick.click()}});
+  pick.addEventListener('change',()=>{if(pick.value)apply(pick.value)});
+  $('latest').addEventListener('click',()=>apply(MAX));
   $('dTo').addEventListener('click',()=>{st.dir='to';calc()});
   $('dFrom').addEventListener('click',()=>{st.dir='from';calc()});
   $('chips').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;st.code=b.dataset.c;$('cur').value=st.code;calc()});
@@ -166,7 +196,7 @@ async function load(){
   $('stamp').innerHTML=`Rate date: ${esc(nice(day.date))} · history ${esc(nice(IDX.first))} to ${esc(nice(dtMax()))}`+(age>3?` · <span class="stale">Not refreshed for ${Math.floor(age)} days - check CBUAE directly</span>`:'');
   table();calc();
 }
-const dtMax=()=>$('dt').max;
+const dtMax=()=>MAX;
 function num(){const v=parseFloat(String(st.amt).replace(/,/g,''));return isFinite(v)?v:0}
 function working(){
   const r=day.rates[st.code],a=num(),c=st.code;
