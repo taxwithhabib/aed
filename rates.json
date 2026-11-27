@@ -1,10 +1,10 @@
 {
  "source": "Central Bank of the UAE - Exchange rates against UAE Dirham",
  "sourceUrl": "https://www.centralbank.ae/en/forex-eibor/exchange-rates/",
- "cbuaeUpdated": "2026-11-26T18:05:16+04:00",
- "cbuaeUpdatedText": "Thursday 26 November 2026 06:05:16 PM",
- "rateDate": "2026-11-26",
- "fetchedAt": "2026-11-27T03:53:38+04:00",
+ "cbuaeUpdated": "2026-11-27T18:05:16+04:00",
+ "cbuaeUpdatedText": "Friday 27 November 2026 06:05:16 PM",
+ "rateDate": "2026-11-27",
+ "fetchedAt": "2026-11-28T03:30:43+04:00",
  "rates": [
   {
    "name": "US Dollar",
@@ -14,12 +14,12 @@
   {
    "name": "Argentine Peso",
    "code": "ARS",
-   "aed": 0.002294
+   "aed": 0.002302
   },
   {
    "name": "Australian Dollar",
    "code": "AUD",
-   "aed": 2.437284
+   "aed": 2.445887
   },
   {
    "name": "Bangladesh Taka",
@@ -34,67 +34,67 @@
   {
    "name": "Brunei Dollar",
    "code": "BND",
-   "aed": 2.846679
+   "aed": 2.846458
   },
   {
    "name": "Brazilian Real",
    "code": "BRL",
-   "aed": 0.640914
+   "aed": 0.662703
   },
   {
    "name": "Botswana Pula",
    "code": "BWP",
-   "aed": 0.257382
+   "aed": 0.258323
   },
   {
    "name": "Belarus Rouble",
    "code": "BYN",
-   "aed": 1.223433
+   "aed": 1.220789
   },
   {
    "name": "Canadian Dollar",
    "code": "CAD",
-   "aed": 2.580271
+   "aed": 2.578822
   },
   {
    "name": "Swiss Franc",
    "code": "CHF",
-   "aed": 4.406647
+   "aed": 4.396624
   },
   {
    "name": "Chilean Peso",
    "code": "CLP",
-   "aed": 0.003544
+   "aed": 0.003552
   },
   {
    "name": "Chinese Yuan - Offshore",
    "code": "CNH",
-   "aed": 0.55122
+   "aed": 0.551766
   },
   {
    "name": "Chinese Yuan",
    "code": "CNY",
-   "aed": 0.55141
+   "aed": 0.551841
   },
   {
    "name": "Colombian Peso",
    "code": "COP",
-   "aed": 0.00105
+   "aed": 0.001048
   },
   {
    "name": "Czech Koruna",
    "code": "CZK",
-   "aed": 0.164975
+   "aed": 0.164657
   },
   {
    "name": "Danish Krone",
    "code": "DKK",
-   "aed": 0.539732
+   "aed": 0.538111
   },
   {
    "name": "Algerian Dinar",
    "code": "DZD",
-   "aed": 0.026783
+   "aed": 0.026759
   },
   {
    "name": "Egypt Pound",
@@ -104,37 +104,37 @@
   {
    "name": "Euro",
    "code": "EUR",
-   "aed": 4.033941
+   "aed": 4.021572
   },
   {
    "name": "GB Pound",
    "code": "GBP",
-   "aed": 4.817771
+   "aed": 4.818504
   },
   {
    "name": "Hongkong Dollar",
    "code": "HKD",
-   "aed": 0.468598
+   "aed": 0.469137
   },
   {
    "name": "Hungarian Forint",
    "code": "HUF",
-   "aed": 0.010837
+   "aed": 0.010862
   },
   {
    "name": "Indonesia Rupiah",
    "code": "IDR",
-   "aed": 0.0002
+   "aed": 0.000201
   },
   {
    "name": "Indian Rupee",
    "code": "INR",
-   "aed": 0.039724
+   "aed": 0.039491
   },
   {
    "name": "Iceland Krona",
    "code": "ISK",
-   "aed": 0.029446
+   "aed": 0.029312
   },
   {
    "name": "Jordan Dinar",
@@ -144,17 +144,17 @@
   {
    "name": "Japanese Yen",
    "code": "JPY",
-   "aed": 0.023067
+   "aed": 0.023018
   },
   {
    "name": "Kenya Shilling",
    "code": "KES",
-   "aed": 0.028217
+   "aed": 0.028207
   },
   {
    "name": "Korean Won",
    "code": "KRW",
-   "aed": 0.002733
+   "aed": 0.002749
   },
   {
    "name": "Kuwaiti Dinar",
@@ -164,7 +164,7 @@
   {
    "name": "Kazakhstan Tenge",
    "code": "KZT",
-   "aed": 0.008024
+   "aed": 0.008018
   },
   {
    "name": "Lebanon Pound",
@@ -174,42 +174,42 @@
   {
    "name": "Sri Lanka Rupee",
    "code": "LKR",
-   "aed": 0.011029
+   "aed": 0.011024
   },
   {
    "name": "Moroccan Dirham",
    "code": "MAD",
-   "aed": 0.366868
+   "aed": 0.36527
   },
   {
    "name": "Macedonia Denar",
    "code": "MKD",
-   "aed": 0.065522
+   "aed": 0.065324
   },
   {
    "name": "Mexican Peso",
    "code": "MXN",
-   "aed": 0.186915
+   "aed": 0.187058
   },
   {
    "name": "Malaysia Ringgit",
    "code": "MYR",
-   "aed": 0.891925
+   "aed": 0.890843
   },
   {
    "name": "Nigerian Naira",
    "code": "NGN",
-   "aed": 0.002689
+   "aed": 0.002695
   },
   {
    "name": "Norwegian Krone",
    "code": "NOK",
-   "aed": 0.376497
+   "aed": 0.376323
   },
   {
    "name": "NewZealand Dollar",
    "code": "NZD",
-   "aed": 2.013101
+   "aed": 2.012439
   },
   {
    "name": "Omani Rial",
@@ -219,22 +219,22 @@
   {
    "name": "Peru Sol",
    "code": "PEN",
-   "aed": 1.056287
+   "aed": 1.059334
   },
   {
    "name": "Philippine Piso",
    "code": "PHP",
-   "aed": 0.057637
+   "aed": 0.057606
   },
   {
    "name": "Pakistan Rupee",
    "code": "PKR",
-   "aed": 0.013284
+   "aed": 0.01329
   },
   {
    "name": "Polish Zloty",
    "code": "PLN",
-   "aed": 0.900674
+   "aed": 0.900564
   },
   {
    "name": "Qatari Riyal",
@@ -244,17 +244,17 @@
   {
    "name": "Serbian Dinar",
    "code": "RSD",
-   "aed": 0.034297
+   "aed": 0.034179
   },
   {
    "name": "Russia Rouble",
    "code": "RUB",
-   "aed": 0.044672
+   "aed": 0.044678
   },
   {
    "name": "Saudi Riyal",
    "code": "SAR",
-   "aed": 0.979072
+   "aed": 0.978968
   },
   {
    "name": "Sudanese Pound",
@@ -264,47 +264,47 @@
   {
    "name": "Swedish Krona",
    "code": "SEK",
-   "aed": 0.360243
+   "aed": 0.358891
   },
   {
    "name": "Singapore Dollar",
    "code": "SGD",
-   "aed": 2.846679
+   "aed": 2.846458
   },
   {
    "name": "Thai Baht",
    "code": "THB",
-   "aed": 0.107919
+   "aed": 0.108174
   },
   {
    "name": "Tunisian Dinar",
    "code": "TND",
-   "aed": 1.205798
+   "aed": 1.20327
   },
   {
    "name": "Turkish Lira",
    "code": "TRY",
-   "aed": 0.07247
+   "aed": 0.072327
   },
   {
    "name": "Trin Tob Dollar",
    "code": "TTD",
-   "aed": 0.540853
+   "aed": 0.541291
   },
   {
    "name": "Taiwan Dollar",
    "code": "TWD",
-   "aed": 0.111389
+   "aed": 0.111393
   },
   {
    "name": "Tanzania Shilling",
    "code": "TZS",
-   "aed": 0.001365
+   "aed": 0.00137
   },
   {
    "name": "Uganda Shilling",
    "code": "UGX",
-   "aed": 0.000852
+   "aed": 0.000851
   },
   {
    "name": "Vietnam Dong",
@@ -319,17 +319,17 @@
   {
    "name": "South Africa Rand",
    "code": "ZAR",
-   "aed": 0.209318
+   "aed": 0.211354
   },
   {
    "name": "Zambian Kwacha",
    "code": "ZMW",
-   "aed": 0.17669
+   "aed": 0.175676
   },
   {
    "name": "Azerbaijan manat",
    "code": "AZN",
-   "aed": 2.160294
+   "aed": 2.147284
   },
   {
    "name": "Bulgarian lev",
@@ -349,32 +349,32 @@
   {
    "name": "Israeli new shekel",
    "code": "ILS",
-   "aed": 1.111531
+   "aed": 1.104312
   },
   {
    "name": "Libyan dinar",
    "code": "LYD",
-   "aed": 0.567357
+   "aed": 0.566534
   },
   {
    "name": "Mauritian rupee",
    "code": "MUR",
-   "aed": 0.078322
+   "aed": 0.078388
   },
   {
    "name": "Nepalese rupee",
    "code": "NPR",
-   "aed": 0.024826
+   "aed": 0.024684
   },
   {
    "name": "Romanian leu",
    "code": "RON",
-   "aed": 0.755239
+   "aed": 0.752916
   },
   {
    "name": "Syrian pound",
    "code": "SYP",
-   "aed": 0.030102
+   "aed": 0.030098
   },
   {
    "name": "Turkmen manat",
